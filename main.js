@@ -9,7 +9,6 @@ const fs=require('fs');
 
 if(process.argv.length<=2){
     console.log("not enough arguments");
-    console.log(process.argv[0]);
     return;
 } 
 else{
@@ -21,10 +20,11 @@ else{
 
     page.then(function(resolve,reject){
         console.log(resolve);
-        downloadImage(resolve.galleryNumber,resolve.pages,resolve.type,dir);
+        downloadImage(resolve.galleryNumber,resolve.pageNumber,resolve.filetype,dir);
     });
 }
 
+//Create comic directory
 function createDir(mainDir,targetDir){
 
     if (!fs.existsSync(`./${mainDir}/`)){
@@ -45,18 +45,32 @@ function getPages(uri){
             let document=html.window.document;
 
             let pagesElement=document.getElementById('tags').nextElementSibling;
-            let pagesString=pagesElement.innerHTML.replace ( /[^\d.]/g, '' );
-            document.getElementsByClassName("gallerythumb")[0].attribute
-            let pages=parseInt(pagesString);
+            let pagesString=pagesElement.innerHTML.split('pages');
+            console.log(pagesString);
+            let pages=parseInt(pagesString[0]);
             
             let galleryElement=document.getElementsByClassName("gallerythumb")[2].childNodes[1].attributes["data-src"].value;
             let test=galleryElement.split('galleries/')[1];
             test=test.split('/')[0];
             let galleryNumber=parseInt(test);
 
-            let type=galleryElement.split('galleries/')[1];
-            type=type.split('.')[1];
-            resolve({galleryNumber,pages,type});
+            //get
+            let Package={
+                galleryNumber:galleryNumber,
+                pageNumber:pages,
+                filetype:[],
+            };
+
+            let galleryElementArray=document.getElementsByClassName("gallerythumb");
+            
+            for(let i=0;i<=pages-1;i++)
+            {
+                let element=galleryElementArray[i].childNodes[1].attributes["data-src"].value;
+                element.split('.');
+                Package.filetype[i]=element.split('.')[3];
+            }
+
+            resolve(Package);
         });
     });
 }
@@ -65,7 +79,9 @@ function downloadImage(number,pages,type,targetDir){
 
     for(let i=1;i<=pages;i++)
     {
-        let uri=`https://i.nhentai.net/galleries/${number}/${i}.${type}`;
+        //need to adjust array iterate
+        //i from 1-25, type from 0-24
+        let uri=`https://i.nhentai.net/galleries/${number}/${i}.${type[i-1]}`;
         request(uri).pipe(fs.createWriteStream(`${targetDir}/${i}.jpg`)).on('close',function(){
             console.log(i + 'done');
         });
