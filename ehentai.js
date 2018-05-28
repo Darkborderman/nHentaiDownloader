@@ -2,27 +2,36 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const request=require('request');
 const fs=require('fs');
-
-//get html argument
-//if not enough just return
-//uh.. I write a monster
-
+/*
 if(process.argv.length<=2){
     console.log("not enough arguments");
     return;
 } 
 else{
-
     let web='nhentai';
     let bookNumber=process.argv[2];
     let dir=createDir(web,bookNumber);
     let page=getPages(`https://nhentai.net/g/${bookNumber}/`);
 
     page.then(function(resolve,reject){
-        console.log(resolve);
+        //console.log(resolve);
         downloadImage(resolve.galleryNumber,resolve.pageNumber,resolve.filetype,dir);
     });
 }
+*/
+
+function download(bookNumber)
+{
+    let web='nhentai';
+    let dir=createDir(web,bookNumber);
+    let page=getPages(`https://nhentai.net/g/${bookNumber}/`);
+
+    page.then(function(resolve,reject){
+        //console.log(resolve);
+        downloadImage(resolve.galleryNumber,resolve.pageNumber,resolve.filetype,dir);
+    });
+}
+
 
 //Create comic directory
 function createDir(mainDir,targetDir){
@@ -46,7 +55,7 @@ function getPages(uri){
 
             let pagesElement=document.getElementById('tags').nextElementSibling;
             let pagesString=pagesElement.innerHTML.split('pages');
-            console.log(pagesString);
+            //console.log(pagesString);
             let pages=parseInt(pagesString[0]);
             
             let galleryElement=document.getElementsByClassName("gallerythumb")[2].childNodes[1].attributes["data-src"].value;
@@ -87,3 +96,7 @@ function downloadImage(number,pages,type,targetDir){
         });
     }
 }
+
+module.exports={
+    download:download
+};
