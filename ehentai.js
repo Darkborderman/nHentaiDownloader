@@ -20,16 +20,17 @@ else{
 }
 */
 
-function download(bookNumber)
+//async function download(bookNumber)
+async function download (bookNumber)
 {
     let web='nhentai';
     let dir=createDir(web,bookNumber);
-    let page=getPages(`https://nhentai.net/g/${bookNumber}/`);
-
-    page.then(function(resolve,reject){
-        //console.log(resolve);
-        downloadImage(resolve.galleryNumber,resolve.pageNumber,resolve.filetype,dir);
-    });
+    let page=await getPages(`https://nhentai.net/g/${bookNumber}/`);
+    console.log(`has ${page.pageNumber} pages`);
+    for(let i=1;i<=page.pageNumber;i++)
+    {
+        await downloadImage(page.galleryNumber,i,page.filetype,dir);
+    }
 }
 
 
@@ -84,17 +85,19 @@ function getPages(uri){
     });
 }
 
-function downloadImage(number,pages,type,targetDir){
+async function downloadImage(number,i,type,targetDir){
 
-    for(let i=1;i<=pages;i++)
-    {
-        //need to adjust array iterate
-        //i from 1-25, type from 0-24
-        let uri=`https://i.nhentai.net/galleries/${number}/${i}.${type[i-1]}`;
-        request(uri).pipe(fs.createWriteStream(`${targetDir}/${i}.jpg`)).on('close',function(){
-            console.log(i + 'done');
+    let uri=`https://i.nhentai.net/galleries/${number}/${i}.${type[i-1]}`;
+
+    const res=await request(uri).pipe(fs.createWriteStream(`${targetDir}/${i}.jpg`));
+    
+
+    return new Promise((resolve,reject)=>{
+        res.on(`close`,()=>{
+            console.log(`${i} done`);
+            resolve(`done`);
         });
-    }
+    });
 }
 
 module.exports={
