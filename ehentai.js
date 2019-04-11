@@ -2,37 +2,17 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const request=require('request');
 const fs=require('fs');
-/*
-if(process.argv.length<=2){
-    console.log("not enough arguments");
-    return;
-} 
-else{
-    let web='nhentai';
-    let bookNumber=process.argv[2];
-    let dir=createDir(web,bookNumber);
-    let page=getPages(`https://nhentai.net/g/${bookNumber}/`);
 
-    page.then(function(resolve,reject){
-        //console.log(resolve);
-        downloadImage(resolve.galleryNumber,resolve.pageNumber,resolve.filetype,dir);
-    });
-}
-*/
 
-//async function download(bookNumber)
-async function download (bookNumber)
+async function download (page,bookNumber,pageStart,pageEnd)
 {
     let web='nhentai';
     let dir=createDir(web,bookNumber);
-    let page=await getPages(`https://nhentai.net/g/${bookNumber}/`);
-    console.log(`has ${page.pageNumber} pages`);
-    for(let i=1;i<=page.pageNumber;i++)
+    for(let i=pageStart;i<=pageEnd;i++)
     {
         await downloadImage(page.galleryNumber,i,page.filetype,dir);
     }
 }
-
 
 //Create comic directory
 function createDir(mainDir,targetDir){
@@ -64,6 +44,7 @@ function getPages(uri){
             test=test.split('/')[0];
             let galleryNumber=parseInt(test);
 
+            let bookName=document.getElementById("info").childNodes[3].innerText;
             //get
             let Package={
                 galleryNumber:galleryNumber,
@@ -101,5 +82,6 @@ async function downloadImage(number,i,type,targetDir){
 }
 
 module.exports={
-    download:download
+    download:download,
+    getPages:getPages
 };
